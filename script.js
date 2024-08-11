@@ -9,13 +9,13 @@ const GameBoard = (function(){
 
     const addMark = function(index, playerMark)
     {
-        if(gameBoard[index]) return;
+        if(gameBoard[index] !== '.') return;
         gameBoard[index] = playerMark;
 
     };
     const getBoard = ()=> [...gameBoard];
 
-    return {getBoard, addMark};
+    return {gameBoard, getBoard, addMark};
 })();
 
 const playerFactory = () =>
@@ -34,39 +34,43 @@ const playerFactory = () =>
             };
         const isWinner = () => win;
         const resetWin = () => win = false;
-        return {name, playerMark, finalScore, won, isWinner, resetWin};
+        return {win, name, playerMark, finalScore, won, isWinner, resetWin};
         }
 }
-
-function playRound(player1, player2)
-{
-   
-
-    // console.log(GameBoard.getBoard());
+function decideWinner(mark)
+    {
     let board = GameBoard.getBoard();
 
-    if(!board.filter(x => x === 0))
-        return false;
-    const decideWinner = (mark) =>
-    {
         const check = function(arr){ return arr.every(x => x === mark)};
 
         for(let i = 0; i < 3; ++i)
         {
             let row = board.slice(i*3, i*3+3);
             let column = board.filter((y,x) => x%3 === i );
-            let pDiagonal = board.filter((y,x) => parseInt(x/3) === parseInt(x%3));
-            let sDiagonal = board.filter((y,x) => parseInt(x/3)+parseInt(x%3) === 2);
-            console.log("for current player: ");
-            console.log(row, column, pDiagonal, sDiagonal);
-            if(check(row) || check(column) || check(pDiagonal) || check(sDiagonal))
+         
+            if(check(row) || check(column))
             {
                 return true;
             }
-
         }
+        
+        let pDiagonal = board.filter((y,x) => parseInt(x/3) === parseInt(x%3));
+        let sDiagonal = board.filter((y,x) => parseInt(x/3)+parseInt(x%3) === 2);
+        if(check(pDiagonal) || check(sDiagonal))
+            return true;
+
         return false;
     }
+
+function playRound(player1, player2)
+{
+   
+    let board = GameBoard.getBoard();
+
+    // console.log(GameBoard.getBoard());
+
+    if(!board.filter(x => x === '.'))
+        return false;
 
     const player1Turn = prompt("Player1 marks: ");
     // const player1Turn = 4;
@@ -90,8 +94,8 @@ function playRound(player1, player2)
             return true;
         }
     
-    else
-        return true;
+    
+    return true;
 
 }
 
