@@ -14,8 +14,9 @@ const GameBoard = (function(){
 
     };
     const getBoard = ()=> [...gameBoard];
+    const reset = ()=> gameBoard.fill('.');
 
-    return {gameBoard, getBoard, addMark};
+    return {gameBoard, getBoard, addMark, reset};
 })();
 
 const playerFactory = () =>
@@ -62,71 +63,71 @@ function decideWinner(mark)
         return false;
     }
 
-function playRound(player1, player2)
+function playRound(player, value)
 {
    
-    let board = GameBoard.getBoard();
-
-    // console.log(GameBoard.getBoard());
-
-    if(!board.filter(x => x === '.'))
-        return false;
-
-    const player1Turn = prompt("Player1 marks: ");
-    // const player1Turn = 4;
-
-    GameBoard.addMark(player1Turn, player1.playerMark());
+    GameBoard.addMark(value, player.playerMark());
     
-    if(decideWinner(player1.playerMark()))
+    if(decideWinner(player.playerMark()))
     {
-        player1.won();
-        return true;
+        player.won();
+        console.log(player.name, " Won!");
+        player.resetWin();
+        GameBoard.reset();
+        return(true);
     }
 
-    const player2Turn = prompt("Player2 marks: ");
-    // const player2Turn = 8;
-
-    GameBoard.addMark(player2Turn, player2.playerMark());
-
-    if(decideWinner(player2.playerMark()))
-        {
-            player2.won();
-            return true;
-        }
-    
-    
-    return true;
-
+    return false;
 }
 
-const initiateGame = (function()
+function initiateGame(board)
 {
     const createPlayer = playerFactory();
 
     const player1 = createPlayer('player1');
     const player2 = createPlayer('player2');
-
-    while(!player1.isWinner() && !player2.isWinner())
-    {
-        const round = playRound(player1, player2);
-        if(!round)
+    let turn = true;
+    board.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        const cell = e.target;
+        if(cell.hasAttribute("index"))
         {
-            console.log("It's a tie!");
-            break;
+            let player = turn?player1:player2;
+            turn = !turn;
+            markOnDOm(cell, player.playerMark());
+
+            console.log(cell.getAttribute('index'));
+            const val = cell.getAttribute('index')          
+            if(playRound(player, val))
+                console.log("Final Score:" +'\nPlayer1: '+ player1.finalScore()+'\nPlayer2: '+player2.finalScore());
         }
         console.log(GameBoard.getBoard());
+    })
+    
+
+}; // not initiating game yet;  
+
+
+
+//DOM UI:
+
+const constructStruct = (function(doc)
+{
+    const gameBoard = doc.querySelector('#gameBoard');
+    const btn = doc.querySelector("#start");
+    btn.addEventListener("click", initiateGame(gameBoard))
+    for(let i=0; i< 9; ++i)
+    {
+        const div = doc.createElement('div');
+        div.setAttribute('index', i);
+        gameBoard.append(div);
     }
 
-    if(player1.isWinner())
-        console.log("Player1 won!");
+})(document);
 
-    else if(player2.isWinner())
-        console.log("Player2 won!");
-
-    console.log("Final Score:" +'\nPlayer1: '+ player1.finalScore()+'\nPlayer2: '+player2.finalScore());
-    player1.resetWin();
-    player2.resetWin();
-})();   
-// console.log(GameBoard);
-// GameBoard.getBoard().push(1);
-// console.log(GameBoard.getBoard());
+function markOnDOm(target, element)
+{
+    const p = document.createElement('p');
+    p.textContent = element;
+    target.appendChild(p);
+}

@@ -1,0 +1,22 @@
+#gameBoard
+{
+    height: 50vw;
+    width: 50vw;
+    margin: auto;
+    background-color: aquamarine;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;  
+    padding: 33px;
+    box-sizing: border-box;  
+}
+
+#gameBoard div
+{
+    background-color: cadetblue;
+    border: 1px solid salmon;
+}
+
+div p{
+    font-size: 40px;
+}
