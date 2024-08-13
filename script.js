@@ -16,28 +16,39 @@ const GameBoard = (function(){
     const getBoard = ()=> [...gameBoard];
     const reset = ()=> gameBoard.fill('.');
 
-    return {gameBoard, getBoard, addMark, reset};
+    return {getBoard, addMark, reset};
 })();
 
-const playerFactory = () =>
+function GameFlow()
 {
-    let currentPlayerNo = 0;
-    return  function(name)
+    const player1 =
         {
-        let mark = currentPlayerNo++?'X':'O';
-        let score = 0;
-        let win = false;
-        const playerMark = () => mark;
-        const finalScore = () => score;
-        const won = ()=>{
-            win=true;
-            score++;
-            };
-        const isWinner = () => win;
-        const resetWin = () => win = false;
-        return {win, name, playerMark, finalScore, won, isWinner, resetWin};
+            name: "player1",
+            mark: 'O',
+            score: 0,
         }
+    const player2 =
+        {
+            name: "player2",
+            mark: 'X',
+            score: 0,
+        }
+        const setPlayer1Name = (name) => player1.name = name;
+        const setPlayer2Name = (name) => player1.name = name;
+
+        const getScore = ()=> [player1.score, player2.score];
+        let turn = true;
+
+        const playRound = (index) =>{
+            const player = turn?player1:player2;
+            GameBoard.addMark(index, player.mark);
+            turn = !turn;
+        }
+
+        return {setPlayer1Name, setPlayer2Name, getScore, playRound};
 }
+
+
 function decideWinner(mark)
     {
     let board = GameBoard.getBoard();
@@ -63,22 +74,7 @@ function decideWinner(mark)
         return false;
     }
 
-function playRound(player, value)
-{
-   
-    GameBoard.addMark(value, player.playerMark());
-    
-    if(decideWinner(player.playerMark()))
-    {
-        player.won();
-        console.log(player.name, " Won!");
-        player.resetWin();
-        GameBoard.reset();
-        return(true);
-    }
 
-    return false;
-}
 
 function initiateGame(board)
 {
@@ -87,33 +83,44 @@ function initiateGame(board)
     const player1 = createPlayer('player1');
     const player2 = createPlayer('player2');
     let turn = true;
-    board.addEventListener("click", (e)=>{
-        e.stopPropagation();
-        const cell = e.target;
-        if(cell.hasAttribute("index"))
+    function markCell(e)
+    {
         {
-            let player = turn?player1:player2;
-            turn = !turn;
-            markOnDOm(cell, player.playerMark());
-
-            console.log(cell.getAttribute('index'));
-            const val = cell.getAttribute('index')          
-            if(playRound(player, val))
-                console.log("Final Score:" +'\nPlayer1: '+ player1.finalScore()+'\nPlayer2: '+player2.finalScore());
-        }
-        console.log(GameBoard.getBoard());
-    })
+            e.stopPropagation();
+            const cell = e.target;
+            if(cell.hasAttribute("index"))
+            {
+                let board = GameBoard.getBoard();
+                if(board.filter(x=>x==='.').length === 0)
+                    console.log("Tie");
+                console.log("length:",board.filter(x=>x==='.').length, !board.filter(x=>x==='.').length);
+                let player = turn?player1:player2;
+                turn = !turn;
+    
+                console.log(cell.getAttribute('index'));
+                const val = cell.getAttribute('index')          
+                if(playRound(player, val)){
+                    console.log("Final Score:" +'\nPlayer1: '+ player1.finalScore()+'\nPlayer2: '+player2.finalScore());
+                    board.removeEventListener("click", markCell);
+                }
+                markOnDOm(cell);
+    
+            }
+            console.log(GameBoard.getBoard());
+    }
+}
+    board.addEventListener("click", markCell)
     
 
 }; // not initiating game yet;  
 
 
-
 //DOM UI:
 
-const constructStruct = (function(doc)
+function constructStruct(doc)
 {
     const gameBoard = doc.querySelector('#gameBoard');
+    gameBoard.replaceChildren();
     const btn = doc.querySelector("#start");
     btn.addEventListener("click", initiateGame(gameBoard))
     for(let i=0; i< 9; ++i)
@@ -123,11 +130,14 @@ const constructStruct = (function(doc)
         gameBoard.append(div);
     }
 
-})(document);
+}
+constructStruct(document);
 
-function markOnDOm(target, element)
+function markOnDOm(target)
 {
+    target.replaceChildren();
     const p = document.createElement('p');
-    p.textContent = element;
+    p.textContent = `${GameBoard.getBoard()[target.getAttribute('index')]}`;
+    console.log(GameBoard.getBoard[target.getAttribute('index')]);
     target.appendChild(p);
 }
