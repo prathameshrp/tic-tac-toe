@@ -26,26 +26,35 @@ function GameFlow()
             name: "player1",
             mark: 'O',
             score: 0,
+            winner: false,
         }
     const player2 =
         {
             name: "player2",
             mark: 'X',
             score: 0,
+            winner: false,
         }
         const setPlayer1Name = (name) => player1.name = name;
-        const setPlayer2Name = (name) => player1.name = name;
-
+        const setPlayer2Name = (name) => player2.name = name;
+        const getPlayer1Name = () => player1.name;
+        const getPlayer2Name = () => player2.name;
+        const isWinner = () => (player1.winner || player2.winner);
         const getScore = ()=> [player1.score, player2.score];
         let turn = true;
 
         const playRound = (index) =>{
+            if(GameBoard.getBoard()[index] !== '.') return;
             const player = turn?player1:player2;
             GameBoard.addMark(index, player.mark);
+            if(decideWinner(player.mark)){
+                player.score++;
+                player.winner = true;
+            }
             turn = !turn;
         }
 
-        return {setPlayer1Name, setPlayer2Name, getScore, playRound};
+        return {setPlayer1Name, setPlayer2Name, getPlayer1Name, getPlayer2Name, getScore, playRound, isWinner};
 }
 
 
@@ -78,37 +87,33 @@ function decideWinner(mark)
 
 function initiateGame(board)
 {
-    const createPlayer = playerFactory();
-
-    const player1 = createPlayer('player1');
-    const player2 = createPlayer('player2');
-    let turn = true;
+    const newGame = GameFlow();
     function markCell(e)
     {
-        {
             e.stopPropagation();
             const cell = e.target;
-            if(cell.hasAttribute("index"))
+            if(cell.hasAttribute("index") && GameBoard.getBoard().includes('.') && !newGame.isWinner())
             {
-                let board = GameBoard.getBoard();
-                if(board.filter(x=>x==='.').length === 0)
-                    console.log("Tie");
-                console.log("length:",board.filter(x=>x==='.').length, !board.filter(x=>x==='.').length);
-                let player = turn?player1:player2;
-                turn = !turn;
-    
+               
                 console.log(cell.getAttribute('index'));
                 const val = cell.getAttribute('index')          
-                if(playRound(player, val)){
-                    console.log("Final Score:" +'\nPlayer1: '+ player1.finalScore()+'\nPlayer2: '+player2.finalScore());
-                    board.removeEventListener("click", markCell);
-                }
+                newGame.playRound(val);
                 markOnDOm(cell);
     
             }
-            console.log(GameBoard.getBoard());
+            if(!GameBoard.getBoard().includes('.') && !newGame.isWinner())
+                {
+                    console.log("Tie!");
+                }
+            if(newGame.isWinner())
+            {
+                const score = newGame.getScore();
+                console.log("final score", score);
+                const winPlayer = score[0]>score[1]?newGame.getPlayer1Name():newGame.getPlayer2Name();
+                console.log(winPlayer, "wins!");
+            }
+            console.log(GameBoard.getBoard()); 
     }
-}
     board.addEventListener("click", markCell)
     
 
@@ -117,7 +122,7 @@ function initiateGame(board)
 
 //DOM UI:
 
-function constructStruct(doc)
+const constructStruct = (function(doc)
 {
     const gameBoard = doc.querySelector('#gameBoard');
     gameBoard.replaceChildren();
@@ -130,8 +135,9 @@ function constructStruct(doc)
         gameBoard.append(div);
     }
 
-}
-constructStruct(document);
+})(document);
+
+
 
 function markOnDOm(target)
 {
