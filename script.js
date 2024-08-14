@@ -87,6 +87,8 @@ function decideWinner(mark)
 
 function initiateGame(board)
 {
+    GameBoard.reset();
+    clearDOM();
     const newGame = GameFlow();
     function markCell(e)
     {
@@ -98,7 +100,7 @@ function initiateGame(board)
                 console.log(cell.getAttribute('index'));
                 const val = cell.getAttribute('index')          
                 newGame.playRound(val);
-                markOnDOm(cell);
+                markOnDOM(cell);
     
             }
             if(!GameBoard.getBoard().includes('.') && !newGame.isWinner())
@@ -117,7 +119,7 @@ function initiateGame(board)
     board.addEventListener("click", markCell)
     
 
-}; // not initiating game yet;  
+} // not initiating game yet;  
 
 
 //DOM UI:
@@ -126,24 +128,33 @@ const constructStruct = (function(doc)
 {
     const gameBoard = doc.querySelector('#gameBoard');
     gameBoard.replaceChildren();
-    const btn = doc.querySelector("#start");
-    btn.addEventListener("click", initiateGame(gameBoard))
+    const start = doc.querySelector("#start");
+    // const restart = doc.querySelector("#restart");
+
     for(let i=0; i< 9; ++i)
     {
         const div = doc.createElement('div');
         div.setAttribute('index', i);
         gameBoard.append(div);
     }
+    start.addEventListener("click", ()=>{
+        initiateGame(gameBoard);
+    });
 
 })(document);
 
-
-
-function markOnDOm(target)
+function markOnDOM(target)
 {
     target.replaceChildren();
     const p = document.createElement('p');
     p.textContent = `${GameBoard.getBoard()[target.getAttribute('index')]}`;
     console.log(GameBoard.getBoard[target.getAttribute('index')]);
     target.appendChild(p);
+}
+
+function clearDOM()
+{
+    const gameBoard = document.querySelector('#gameBoard');
+    const cells = gameBoard.querySelectorAll('div');
+    cells.forEach(e => (e.replaceChildren()));
 }
